@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  refreshToken  String?
+  roleId    Int
+  status  Boolean @default(true) 
+  // Almacena con zona (timestamptz) y deja que Prisma lo auto-actualice:
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt      @db.Timestamptz(3)
+  role      Role     @relation(fields: [roleId], references: [id])
+  profile      ProfileUser? // 👈 Relación 1:1 
+   // 👇 Relación inversa con AuditLog
+  auditLogs    AuditLog[]
+}
+
+model PasswordReset {
+  id                  String   @id @default(cuid())
+  email               String
+  codeHash            String    // hash del código de 6 dígitos
+  expiresAt           DateTime  @db.Timestamptz(3) // vence el código
+  attempts            Int       @default(0)
+  usedAt              DateTime? @db.Timestamptz(3) // cuando se consumió (evita reutilizar)
+  resetTokenHash      String?   // hash del token temporal tras verificar el código
+  resetTokenExpiresAt DateTime? @db.Timestamptz(3) // vence el token de reseteo
+  ip                  String?
+  userAgent           String?
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([email, expiresAt])
+}
+
+model ProfileUser {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique // 👈 Relación uno a uno
+  firstName String
+  lastName  String
+  address   String?
+  email     String  @unique
+  phone     String?
+  cus       String? @unique // Código Único del Sistema (CUS)
+  
+  // Profesionales
+  profession    String?
+  company       String?
+  position      String?
+  experience    Int?        // años de experiencia
+  linkedinUrl   String?
+  githubUrl     String?
+  skills        String[]    // lista de skills como array
+  bio           String?     // resumen profesional
+
+  status    Boolean  @default(true)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt      @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  status  Boolean @default(true) 
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt     @db.Timestamptz(3)
+  permissions RoleHasPermission[]
+  users       User[]
+}
+
+model Permission {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  status  Boolean @default(true) 
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt      @db.Timestamptz(3)
+  roles RoleHasPermission[]
+}
+
+model RoleHasPermission {
+  id           Int         @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  status  Boolean @default(true) 
+  createdAt  DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime   @updatedAt      @db.Timestamptz(3)
+  role         Role        @relation(fields: [roleId], references: [id])
+  permission   Permission  @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId]) // 👈 Esto crea la clave única compuesta
+}
+
+
+model AuditLog {
+  id          Int       @id @default(autoincrement())
+  userId      Int?      // null si es guest
+  module      String    // ej: "User", "Role", "Form"
+  action      String    // ej: "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entityId    Int?      // id del registro afectado
+  dataBefore  Json?     // snapshot antes (opcional)
+  dataAfter   Json?     // snapshot después (opcional)
+  ipAddress   String?   // IP del request
+  userAgent   String?   // navegador / cliente
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+
+  user        User?     @relation(fields: [userId], references: [id])
+}
+

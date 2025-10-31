@@ -1,0 +1,65 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "NODE_ENV=development ts-node-dev --inspect=9229 --respawn --transpile-only --require tsconfig-paths/register src/server.ts",
+    "build": "NODE_ENV=production tsc -p .",
+    "start": "node dist/server.js",
+    "swagger:gen": "ts-node scripts/swagger.gen.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "dotenv -e .env.development -- prisma migrate dev --name init",
+    "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
+    "prisma:seed:prod": "dotenv -e .env.production ts-node --esm -r tsconfig-paths/register prisma/seed.ts",
+    "prisma:seed:permissions": "dotenv -e .env.development ts-node -r tsconfig-paths/register prisma/seed_permission.ts",
+    "prisma:seed:hasrole": "dotenv -e .env.development ts-node -r tsconfig-paths/register prisma/seed_rolhaspermission.ts",
+    "lint:ts": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "update": "pnpm update --latest"
+  },
+  "prisma": {
+    "seed": "pnpm run prisma:seed"
+  },
+  "keywords": [
+    "express",
+    "api",
+    "backend",
+    "pnpm"
+  ],
+  "author": "GTI-HakiDevs",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.1",
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
+    "moment-timezone": "^0.6.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/moment": "^2.13.0",
+    "@types/moment-timezone": "^0.5.30",
+    "@types/node": "^24.9.2",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^6.18.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10.16.0"
+  }
+}
