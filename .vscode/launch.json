@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend (ts-node-dev)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["run", "dev", "--", "--inspect=9229"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "protocol": "inspector",
+      "restart": true,
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend (ts-node manual)",
+      "program": "${workspaceFolder}/node_modules/ts-node-dev/dist/bin.js",
+      "args": [
+        "--respawn",
+        "--transpile-only",
+        "--require",
+        "tsconfig-paths/register",
+        "${workspaceFolder}/src/server.ts"
+      ],
+      "cwd": "${workspaceFolder}",
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Backend (dist build)",
+      "program": "${workspaceFolder}/dist/server.js",
+      "cwd": "${workspaceFolder}",
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}

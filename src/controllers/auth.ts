@@ -199,18 +199,24 @@ export const forgotPassword = async (req: Request, res: Response) => {
   // Respuesta SIEMPRE 200 para no filtrar existencia
   try {
     const user = await prisma.user.findUnique({ where: { email } });
+
     if (user) {
-      await createAndSendResetCode({
+      const ua = req.get('user-agent');
+
+      const args: Parameters<typeof createAndSendResetCode>[0] = {
         email,
-        ip: req.ip,
-        userAgent: req.get('user-agent') || undefined,
-      });
+        ...(req.ip ? { ip: req.ip } : {}),
+        ...(ua ? { userAgent: ua } : {}),
+      };
+
+      await createAndSendResetCode(args);
     }
+
     return res.json({ message: 'Si el correo existe, enviaremos un código de verificación' });
   } catch (e: any) {
-    // No revelar si existe o no
     return res.json({ message: 'Si el correo existe, enviaremos un código de verificación - ' + e });
   }
+
 }
 
 export const verifyCode = async (req: Request, res: Response) => {
@@ -218,13 +224,21 @@ export const verifyCode = async (req: Request, res: Response) => {
   if (!email || !code) return res.status(400).json({ error: 'Email y código son requeridos' });
 
   try {
-    const result = await verifyCodeAndIssueToken({
-      email,
-      code,
-      ip: req.ip,
-      userAgent: req.get('user-agent') || undefined,
-    });
-    return res.json(result); // { resetToken, expiresAt }
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      const ua = req.get('user-agent');
+
+      const args: Parameters<typeof verifyCodeAndIssueToken>[0] = {
+        email,
+        code,
+        ...(req.ip ? { ip: req.ip } : {}),
+        ...(ua ? { userAgent: ua } : {}),
+      };
+
+      const result = await verifyCodeAndIssueToken(args);
+      return res.json(result);
+    }
   } catch (e: any) {
     return res.status(400).json({ error: e.message || 'No se pudo verificar el código' });
   }

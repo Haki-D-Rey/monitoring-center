@@ -22,11 +22,14 @@ class RoleControllerImpl extends PaginatedController<RoleQuery, RolePage> {
   ): Promise<PageFetchResult<RolePage>> {
     const { page, pageSize, sortBy, sortDir, search, filters } = params;
 
-    const result = await roleService.getAll(page, pageSize, {
+    const filterArgs = {
       ...filters,
-      search,
-      sortBy, sortDir,
-    });
+      ...(search ? { search } : {}),
+      ...(sortBy ? { sortBy } : {}),
+      ...(sortDir ? { sortDir } : {}),
+    } as const;
+
+    const result = await roleService.getAll(page, pageSize, filterArgs);
 
     return result;
   }

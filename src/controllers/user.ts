@@ -13,14 +13,17 @@ class UserControllerImpl extends PaginatedController<UserQuery, UserPage> {
   ): Promise<PageFetchResult<UserPage>> {
     const { page, pageSize, sortBy, sortDir, search, filters } = params;
 
-    const result = await userService.getAll(page, pageSize, {
+    const filterArgs = {
       ...filters,
-      search,
-      sortBy, sortDir,
-    });
+      ...(search ? { search } : {}),
+      ...(sortBy ? { sortBy } : {}),
+      ...(sortDir ? { sortDir } : {}),
+    } as const;
 
+    const result = await userService.getAll(page, pageSize, filterArgs);
     return result;
   }
+
 
   /** GET /:id */
   public getById = (req: Request, res: Response) =>

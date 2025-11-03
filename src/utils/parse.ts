@@ -2,22 +2,29 @@
 import { MergeOptions } from "@src/types";
 
 
-// utils/query.ts
-export function foldBracketFilters(src: Record<string, unknown>) {
-    const filters: Record<string, any> = {};
+export function foldBracketFilters(src: Record<string, unknown>): Record<string, unknown> {
+    const filters: Record<string, unknown> = {};
+
     for (const [key, val] of Object.entries(src)) {
-        // filters[foo]  ó  filters[foo][from|to]
+        // filters[foo]   ó   filters[foo][from|to]
         const m = key.match(/^filters\[(.+?)\](?:\[(from|to)\])?$/);
         if (!m) continue;
 
-        const [, name, sub] = m;
+        const name = m[1] as string | undefined;
+        const sub = m[2] as 'from' | 'to' | undefined;
+
+        // asegura que name sea string no vacío
+        if (!name) continue;
+
         if (sub) {
-            filters[name] ??= {};
-            filters[name][sub] = val;
+            // inicializa bucket como objeto
+            const bucket = (filters[name] ??= {} as Record<string, unknown>) as Record<string, unknown>;
+            bucket[sub] = val;
         } else {
             filters[name] = val;
         }
     }
+
     return filters;
 }
 

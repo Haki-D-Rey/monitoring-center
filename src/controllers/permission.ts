@@ -21,11 +21,14 @@ class PermissionControllerImpl extends PaginatedController<PermissionQuery, Perm
   ): Promise<PageFetchResult<PermissionPage>> {
     const { page, pageSize, sortBy, sortDir, search, filters } = params;
 
-    const result = await permissionService.getAll(page, pageSize, {
+    const filterArgs = {
       ...filters,
-      search,
-      sortBy, sortDir,
-    });
+      ...(search ? { search } : {}),
+      ...(sortBy ? { sortBy } : {}),
+      ...(sortDir ? { sortDir } : {}),
+    } as const;
+
+    const result = await permissionService.getAll(page, pageSize, filterArgs);
 
     return result;
   }

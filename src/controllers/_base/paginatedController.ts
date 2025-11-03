@@ -41,23 +41,26 @@ export abstract class PaginatedController<
     const page = clampInt(q?.page ?? 1, 1, Infinity);
     const rawSize = (q?.pageSize ?? q?.perPage ?? 10);
     const pageSize = clampInt(rawSize, 1, 1000);
+    const filters = pickFilters<TQuery>(q);
+
 
     const sortBy = asString(q?.sortBy);
     const sortDir = asSortDir(q?.sortDir);
-    const search = asString(q?.search ?? q?.q) || undefined;
+    const search = asString(q?.search ?? q?.q);
 
-    // 👇 ahora devuelve el tipo correcto (FiltersDict<TQuery>)
-    const filters = pickFilters<TQuery>(q);
-
-    const result = await this.fetchPage({
+    const baseParams = {
       page,
       pageSize,
       sortBy,
       sortDir,
-      search,
-      filters,
-    });
+      filters, // FiltersDict<TQuery>
+    };
 
+    const params: ListParams<FiltersOf<TQuery>> = search
+      ? { ...baseParams, search }          // incluye 'search' si no está vacío
+      : baseParams;                        // omite 'search' si es ""
+
+    const result = await this.fetchPage(params);
     const lastPage = Math.max(1, Math.ceil((result.total || 0) / (result.pageSize || pageSize)));
 
     const payload: ServerResponse<TItem> = {
